@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict';
+
 var util = require('util');
 var cp = require('child_process');
 
@@ -42,7 +44,7 @@ var noArgs = function (fn) {
 
 var identity = function (i) { return i; };
 
-// like Q.all, but runs the comands in series
+// like Q.all, but runs the commands in series
 // useful for ensuring env state (like which branch is checked out)
 var allInSeries = function (fn) {
   return function (args) {
@@ -101,10 +103,10 @@ then(function (tags) {
     sort(semver.rcompare);
 }).
 then(function (tags) {
-  var major = tags[0].split('.')[0] + '.x';
+  var major = tags[0].split('.')[0];
   return tags.
     filter(function (ver) {
-      return semver.satisfies(ver, major);
+      return semver(ver).major == major;
     });
 }).
 then(function (tags) {
@@ -143,10 +145,10 @@ then(allInSeries(function (branch) {
         line = line.split(' ');
         var sha = line.shift();
         var msg = line.join(' ');
-        return sha + (msg.toLowerCase().indexOf('fix') === -1 ? '   ' : ' * ') + msg;
+        return sha + ((/fix\([^\)]+\):/i.test(msg))  ? ' * ' : '   ') + msg;
       });
       branch.log = log.map(function (line) {
-        return line.substr(41)
+        return line.substr(41);
       });
       return branch;
     });
